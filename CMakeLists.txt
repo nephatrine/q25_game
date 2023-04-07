@@ -211,6 +211,10 @@ set(GAME25_SOURCES
 	"${CMAKE_CURRENT_SOURCE_DIR}/missionpack/z_trigger.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/missionpack/z_weapon.c")
 
+if(WIN32)
+	list(APPEND GAME25_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/missionpack_2008.rc")
+endif()
+
 # What the heck do we call this sucker?
 
 set(GAME25_MODULE_NAME_IS_DEFAULT OFF)
