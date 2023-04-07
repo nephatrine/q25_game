@@ -128,6 +128,10 @@ cvar_t	*randomrespawn;
 //Q25 cvars
 cvar_t *skill_stage;
 
+#ifdef NEPHATRINE_TWEAKS
+cvar_t *g_medkit_waste;
+#endif
+
 void SpawnEntities (char *mapname, char *entities, char *spawnpoint);
 void ClientThink (edict_t *ent, usercmd_t *cmd);
 qboolean ClientConnect (edict_t *ent, char *userinfo);

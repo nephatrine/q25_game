@@ -1089,6 +1089,10 @@ extern	cvar_t	*zoomsnap;
 // Q25 UNIT
 extern	cvar_t *skill_stage;
 
+#ifdef NEPHATRINE_TWEAKS
+extern cvar_t *g_medkit_waste;
+#endif
+
 extern	int		max_modelindex;
 extern	int		max_soundindex;
 

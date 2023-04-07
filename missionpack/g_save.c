@@ -429,6 +429,10 @@ void InitGame (void)
 	skill_stage = gi.cvar("skill_stage", "0", CVAR_LATCH);
 //Q25
 
+#ifdef NEPHATRINE_TWEAKS
+	g_medkit_waste = gi.cvar ("g_medkit_waste", "5", 0);
+#endif
+
 	// noset vars
 	dedicated = gi.cvar ("dedicated", "0", CVAR_NOSET);
 

@@ -1413,7 +1413,12 @@ void MegaHealth_think (edict_t *self)
 qboolean Pickup_Health (edict_t *ent, edict_t *other)
 {
 	if (!(ent->style & HEALTH_IGNORE_MAX))
+#ifdef NEPHATRINE_TWEAKS
+		// QOL: I *hate* accidentally wasting a medkit when I'm at 98 health...
+		if (other->health + ent->count > other->max_health + g_medkit_waste->value)
+#else
 		if (other->health >= other->max_health)
+#endif
 			return false;
 
 	// Knightmare- cap foodcube
