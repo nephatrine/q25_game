@@ -1483,6 +1483,12 @@ void fire_player_melee (edict_t *self, vec3_t start, vec3_t aim, int reach, int 
 		VectorMA(self->velocity, 75, forward, self->velocity);
 		VectorMA(self->velocity, 75, up, self->velocity);
 
+#ifdef NEPHATRINE_TWEAKS
+		// QUAD DAMANGE... to dead bodies :D
+		if (tr.ent->health <= 0)
+			damage *= 4;
+#endif
+
 		// do the damage
 		// FIXME - make the damage appear at right spot and direction
 		if (mod == MOD_CHAINFIST)
