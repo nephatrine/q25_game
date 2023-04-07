@@ -1568,6 +1568,8 @@ void SwitchToBestStartWeapon (gclient_t *client)
 	//ent->client->newweapon = FindItem ("blaster");
 	if ( client->pers.inventory[ITEM_INDEX(FindItem("blaster"))] )
 		client->pers.weapon = FindItem ("blaster");
+	else if ( client->pers.inventory[ITEM_INDEX(FindItem("chainfist"))] )
+		client->pers.weapon = FindItem ("chainfist");
 	else
 		client->pers.weapon = FindItem ("No Weapon");
 }
@@ -1697,7 +1699,12 @@ void SelectStartWeapon (gclient_t *client, int style)
 		
 	// Knightmare- player always has null weapon in SP to allow holstering
 	if (!deathmatch->value)
+	{
+#ifdef NEPHATRINE_TWEAKS
+		client->pers.inventory[ITEM_INDEX(FindItem("Chainfist"))] = 1;
+#endif
 		client->pers.inventory[ITEM_INDEX(FindItem("No Weapon"))] = 1;
+	}
 
 	// Zaero
 	if ( !deathmatch->value && (level.maptype == MAPTYPE_ZAERO) )

@@ -240,6 +240,7 @@ add_library(game25 MODULE ${GAME25_SOURCES})
 set_target_properties(game25 PROPERTIES
 	DEFINE_SYMBOL "GAME_EXPORTS"
 	OUTPUT_NAME "${GAME25_NAME}")
+target_compile_definitions(game25 PRIVATE "NEPHATRINE_TWEAKS")
 
 if(NOT WIN32 OR NOT MSVC)
 	target_compile_definitions(game25 PRIVATE "C_ONLY")
