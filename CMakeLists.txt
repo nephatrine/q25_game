@@ -233,6 +233,8 @@ endif()
 
 # SET UP MODULE TARGET
 
+option(NEPHATRINE_TWEAKS "Use Optional Nephatrine Tweaks" OFF)
+
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_SHARED_MODULE_PREFIX "")
 
@@ -240,8 +242,10 @@ add_library(game25 MODULE ${GAME25_SOURCES})
 set_target_properties(game25 PROPERTIES
 	DEFINE_SYMBOL "GAME_EXPORTS"
 	OUTPUT_NAME "${GAME25_NAME}")
-target_compile_definitions(game25 PRIVATE "NEPHATRINE_TWEAKS")
-
+	
+if(NEPHATRINE_TWEAKS)
+	target_compile_definitions(game25 PRIVATE "NEPHATRINE_TWEAKS")
+endif()
 if(NOT WIN32 OR NOT MSVC)
 	target_compile_definitions(game25 PRIVATE "C_ONLY")
 endif()
@@ -268,9 +272,15 @@ add_custom_command(TARGET game25 PRE_BUILD
 # TODO: There is apparently no consensus on the name for 64-bit dll/so.
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	add_custom_command(TARGET game25 POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game25> "game${CMAKE_SHARED_MODULE_SUFFIX}"
-	)
+	if(UNIX)
+		add_custom_command(TARGET game25 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E create_symlink "${GAME25_NAME}${CMAKE_SHARED_MODULE_SUFFIX}" "game${CMAKE_SHARED_MODULE_SUFFIX}"
+		)
+	else()
+		add_custom_command(TARGET game25 POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game25> "game${CMAKE_SHARED_MODULE_SUFFIX}"
+		)
+	endif()
 	install(PROGRAMS "game${CMAKE_SHARED_MODULE_SUFFIX}" DESTINATION ".")
 endif()
 
