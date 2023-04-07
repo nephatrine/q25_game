@@ -211,29 +211,31 @@ set(GAME25_SOURCES
 	"${CMAKE_CURRENT_SOURCE_DIR}/missionpack/z_trigger.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/missionpack/z_weapon.c")
 
-# GAME DLL NAMING
+# What the heck do we call this sucker?
 
-if(NOT DEFINED GAME25_NAME)
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|X86|x86_64|i[0-9]86")
+set(GAME25_MODULE_NAME_IS_DEFAULT OFF)
+if(NOT DEFINED GAME25_MODULE_NAME)
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|X86|amd64|x86|i[0-9]86")
 		if(WIN32)
-			set(GAME25_NAME "gamex64")
+			set(GAME25_MODULE_NAME "gamex64")
 		else()
-			set(GAME25_NAME "gamex86_64")
+			set(GAME25_MODULE_NAME "gamex86_64")
 		endif()
-	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4 AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|X86|x86_64|i[0-9]86")
+	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4 AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|X86|amd64|x86|i[0-9]86")
 		if(WIN32)
-			set(GAME25_NAME "gamex86")
+			set(GAME25_MODULE_NAME "gamex86")
 		else()
-			set(GAME25_NAME "gamei386")
+			set(GAME25_MODULE_NAME "gamei386")
 		endif()
 	else()
-		set(GAME25_NAME "game")
+		set(GAME25_MODULE_NAME "game")
 	endif()
+	set(GAME25_MODULE_NAME_IS_DEFAULT ON)
 endif()
 
-# SET UP MODULE TARGET
+# Operator: "Main Target Turn On." Captain: "It's you!!"
 
-option(NEPHATRINE_TWEAKS "Use Optional Nephatrine Tweaks" OFF)
+option(NEPHATRINE_TWEAKS "Use Nephatrine's Personal Tweaks" OFF)
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_SHARED_MODULE_PREFIX "")
@@ -241,7 +243,7 @@ set(CMAKE_SHARED_MODULE_PREFIX "")
 add_library(game25 MODULE ${GAME25_SOURCES})
 set_target_properties(game25 PROPERTIES
 	DEFINE_SYMBOL "GAME_EXPORTS"
-	OUTPUT_NAME "${GAME25_NAME}")
+	OUTPUT_NAME "${GAME25_MODULE_NAME}")
 	
 if(NEPHATRINE_TWEAKS)
 	target_compile_definitions(game25 PRIVATE "NEPHATRINE_TWEAKS")
@@ -253,13 +255,11 @@ if(UNIX)
 	target_link_libraries(game25 PRIVATE "m" ${CMAKE_DL_LIBS})
 endif()
 
-install(TARGETS game25 DESTINATION ".")
-
 # This is an abomination.
 
 if(WIN32)
 	set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs.exe")
-else()
+elseif(UNIX AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
 	set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs")
 endif()
 
@@ -269,31 +269,62 @@ add_custom_command(TARGET game25 PRE_BUILD
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/missionpack"
 )
 
-# TODO: There is apparently no consensus on the name for 64-bit dll/so.
+# We only do this stuff if we're an strong, independent CMake module.
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	if(UNIX)
-		add_custom_command(TARGET game25 POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E create_symlink "${GAME25_NAME}${CMAKE_SHARED_MODULE_SUFFIX}" "game${CMAKE_SHARED_MODULE_SUFFIX}"
-		)
+include(CMakeDependentOption)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+	set(GAME25_SHOULD_INSTALL ON)
+	set(GAME25_SHOULD_PACKAGE ON)
+else()
+	if(DEFINED GAME25_INSTALL_DIR)
+		set(GAME25_SHOULD_INSTALL ON)
 	else()
-		add_custom_command(TARGET game25 POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game25> "game${CMAKE_SHARED_MODULE_SUFFIX}"
-		)
+		set(GAME25_SHOULD_INSTALL OFF)
 	endif()
-	install(PROGRAMS "game${CMAKE_SHARED_MODULE_SUFFIX}" DESTINATION ".")
+	set(GAME25_SHOULD_PACKAGE OFF)
+endif()
+
+option(GAME25_DO_INSTALL "Allow Module Installation" ${GAME25_SHOULD_INSTALL})
+cmake_dependent_option(GAME25_DO_PACKAGE "Allow Module Packaging" ${GAME25_SHOULD_PACKAGE} "GAME25_DO_INSTALL" OFF)
+
+# This is really just here so packaging works.
+
+if(NOT DEFINED GAME25_INSTALLDIR)
+	set(GAME25_INSTALL_DIR "q25")
+endif()
+
+if(GAME25_DO_INSTALL)
+	install(TARGETS game25 DESTINATION ${GAME25_INSTALL_DIR})
+
+	# TODO: There is apparently no consensus on the name for 64-bit dll/so.
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND GAME25_MODULE_NAME_IS_DEFAULT)
+		if(UNIX)
+			add_custom_command(TARGET game25 POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E create_symlink "${GAME25_MODULE_NAME}${CMAKE_SHARED_MODULE_SUFFIX}" "game${CMAKE_SHARED_MODULE_SUFFIX}"
+			)
+		else()
+			add_custom_command(TARGET game25 POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:game25> "game${CMAKE_SHARED_MODULE_SUFFIX}"
+			)
+		endif()
+		install(PROGRAMS "game${CMAKE_SHARED_MODULE_SUFFIX}" DESTINATION ${GAME25_INSTALL_DIR})
+	endif()
 endif()
 
 # PACK IT UP, PACK IT IN, LET ME BEGIN
 
-string(TOLOWER "q25-${GAME25_NAME}-${CMAKE_SYSTEM_NAME}" CPACK_PACKAGE_FILE_NAME)
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "q25-source")
-set(CPACK_SOURCE_IGNORE_FILES "build.*/" ".*~$" "/[.]")
-if(WIN32)
-	set(CPACK_GENERATOR "ZIP" "7Z")
-	set(CPACK_SOURCE_GENERATOR "ZIP")
-else()
-	set(CPACK_GENERATOR "TGZ" "TXZ")
-	set(CPACK_SOURCE_GENERATOR "TGZ")
+if(GAME25_DO_PACKAGE)
+	string(TOLOWER "q25-${GAME25_MODULE_NAME}-${CMAKE_SYSTEM_NAME}" CPACK_PACKAGE_FILE_NAME)
+	set(CPACK_SOURCE_PACKAGE_FILE_NAME "q25-source")
+	set(CPACK_SOURCE_IGNORE_FILES "build.*/" ".*~$" "/[.]")
+	set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+	if(WIN32)
+		set(CPACK_GENERATOR "ZIP" "7Z")
+		set(CPACK_SOURCE_GENERATOR "ZIP")
+	else()
+		set(CPACK_GENERATOR "TGZ" "TXZ")
+		set(CPACK_SOURCE_GENERATOR "TGZ")
+	endif()
+	include(CPack)
 endif()
-include(CPack)
