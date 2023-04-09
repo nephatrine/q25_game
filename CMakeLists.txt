@@ -248,15 +248,23 @@ add_library(game25 MODULE ${GAME25_SOURCES})
 set_target_properties(game25 PROPERTIES
 	DEFINE_SYMBOL "GAME_EXPORTS"
 	OUTPUT_NAME "${GAME25_MODULE_NAME}")
-	
+add_library(kmgame25 MODULE ${GAME25_SOURCES})
+set_target_properties(kmgame25 PROPERTIES
+	DEFINE_SYMBOL "GAME_EXPORTS"
+	OUTPUT_NAME "kmq2${GAME25_NAME}")
+target_compile_definitions(kmgame25 PRIVATE "KMQUAKE2_ENGINE_MOD")
+
 if(NEPHATRINE_TWEAKS)
 	target_compile_definitions(game25 PRIVATE "NEPHATRINE_TWEAKS")
+	target_compile_definitions(kmgame25 PRIVATE "NEPHATRINE_TWEAKS")
 endif()
 if(NOT WIN32 OR NOT MSVC)
 	target_compile_definitions(game25 PRIVATE "C_ONLY")
+	target_compile_definitions(kmgame25 PRIVATE "C_ONLY")
 endif()
 if(UNIX)
 	target_link_libraries(game25 PRIVATE "m" ${CMAKE_DL_LIBS})
+	target_link_libraries(kmgame25 PRIVATE "m" ${CMAKE_DL_LIBS})
 endif()
 
 # This is an abomination.
@@ -267,11 +275,21 @@ elseif(UNIX AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
 	set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs")
 endif()
 
-add_custom_command(TARGET game25 PRE_BUILD
-	COMMAND "${EXTRACTFUNCS_EXECUTABLE}" *.c -o g_func_list.h g_func_decs.h
-	COMMAND "${EXTRACTFUNCS_EXECUTABLE}" *.c -t mmove_t -o g_mmove_list.h g_mmove_decs.h
-	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/missionpack"
-)
+if(DEFINED EXTRACTFUNCS_EXECUTABLE AND EXISTS "${EXTRACTFUNCS_EXECUTABLE}")
+	add_custom_command(
+		OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/g_func_list.h" "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/g_func_decs.h" "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/g_mmove_list.h" "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/g_mmove_decs.h"
+		COMMAND "${EXTRACTFUNCS_EXECUTABLE}" "*.c" -o "g_func_list.h" "g_func_decs.h"
+		COMMAND "${EXTRACTFUNCS_EXECUTABLE}" "*.c" -t mmove_t -o "g_mmove_list.h" "g_mmove_decs.h"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/missionpack"
+		DEPENDS ${GAME25_SOURCES} USES_TERMINAL)
+	add_custom_command(
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/extracted_funcs.h"
+		COMMAND "${EXTRACTFUNCS_EXECUTABLE}" "*.c" -o "g_func_list.h" "g_func_decs.h"
+		COMMAND "${EXTRACTFUNCS_EXECUTABLE}" "*.c" -t mmove_t -o "g_mmove_list.h" "g_mmove_decs.h"
+		COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_BINARY_DIR}/extracted_funcs.h"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/missionpack" USES_TERMINAL)
+	list(APPEND GAME25_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/extracted_funcs.h" "${q25_game_SOURCE_DIR}/missionpack/g_func_list.h" "${q25_game_SOURCE_DIR}/missionpack/g_func_decs.h" "${q25_game_SOURCE_DIR}/missionpack/g_mmove_list.h" "${q25_game_SOURCE_DIR}/missionpack/g_mmove_decs.h")
+endif()
 
 # We only do this stuff if we're an strong, independent CMake module.
 
@@ -300,6 +318,7 @@ endif()
 
 if(GAME25_DO_INSTALL)
 	install(TARGETS game25 DESTINATION ${GAME25_INSTALL_DIR})
+	install(TARGETS kmgame25 DESTINATION ${GAME25_INSTALL_DIR})
 
 	# TODO: There is apparently no consensus on the name for 64-bit dll/so.
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND GAME25_MODULE_NAME_IS_DEFAULT)
