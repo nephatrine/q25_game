@@ -263,10 +263,12 @@ endif()
 
 # This is an abomination.
 
-if(WIN32)
-	set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs.exe")
-elseif(UNIX AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
-	set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs")
+if(NOT DEFINED NO_EXTRACTFUNCS OR DEFINED EXTRACTFUNCS_EXECUTABLE)
+	if(WIN32)
+		set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs.exe")
+	elseif(UNIX AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+		set(EXTRACTFUNCS_EXECUTABLE "${CMAKE_CURRENT_SOURCE_DIR}/missionpack/extractfuncs/extractfuncs")
+	endif()
 endif()
 
 if(DEFINED EXTRACTFUNCS_EXECUTABLE AND EXISTS "${EXTRACTFUNCS_EXECUTABLE}")
