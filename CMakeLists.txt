@@ -251,7 +251,7 @@ set_target_properties(game25 PROPERTIES
 add_library(kmgame25 MODULE ${GAME25_SOURCES})
 set_target_properties(kmgame25 PROPERTIES
 	DEFINE_SYMBOL "GAME_EXPORTS"
-	OUTPUT_NAME "kmq2${GAME25_NAME}")
+	OUTPUT_NAME "kmq2${GAME25_MODULE_NAME}")
 target_compile_definitions(kmgame25 PRIVATE "KMQUAKE2_ENGINE_MOD")
 
 if(NEPHATRINE_TWEAKS)
