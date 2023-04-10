@@ -2696,9 +2696,14 @@ void PutClientInServer (edict_t *ent)
 
 	client->flashlight_active = false;
 
-	if (!KillBox (ent))
+	if (!KillBox (ent) && coop->value)
 	{	// could't spawn in?
+		client->stuck_in_place = true;
+		client->stuck_timer = 0;
+		ent->solid = SOLID_NOT;
 	}
+	else
+		client->stuck_in_place = false;
 
 	gi.linkentity (ent);
 
@@ -3607,6 +3612,17 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	VectorCopy(ent->s.origin,oldorigin);
 	VectorCopy(ent->velocity,oldvelocity);
 	ground = ent->groundentity;
+
+	if(client->stuck_in_place && level.time > client->stuck_timer + 5)
+	{
+		if(client->stuck_timer)
+		{
+			ent->solid = SOLID_BBOX;
+			client->stuck_in_place = false;
+		}
+		else
+			client->stuck_timer = level.time;
+	}
 
 	if (ground && (ground->movetype == MOVETYPE_PUSH) && (ground != world) && ground->turn_rider)
 		ground_speed = VectorLength(ground->velocity);

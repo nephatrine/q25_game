@@ -2281,6 +2281,9 @@ struct gclient_s
 // end Zaero
 
 	qboolean	bfg_missfire;	// Knightmare- added for Zaero EMP Nuke
+
+	qboolean	stuck_in_place;
+	float		stuck_timer;
 };
 
 /*

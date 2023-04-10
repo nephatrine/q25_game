@@ -2641,6 +2641,12 @@ void ClientCommand (edict_t *ent)
 		else	// anything that doesn't match a command will be a chat
 			Cmd_Say_f (ent, false, true);
 	}
+	else if (coop->value && Q_stricmp(cmd, "phase") == 0)
+	{
+		ent->client->stuck_in_place = true;
+		ent->client->stuck_timer = 0;
+		ent->solid = SOLID_NOT;
+	}
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

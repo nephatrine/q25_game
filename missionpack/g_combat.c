@@ -916,6 +916,12 @@ void T_Damage (edict_t *in_targ, edict_t *inflictor, edict_t *in_attacker, vec3_
 	if (!targ->takedamage)
 		return;
 
+	if ( (mod == MOD_TELEFRAG) && !Q_stricmp(targ->classname, "player") && (coop->value))
+	{
+		gi.dprintf("ANTI-TELEGRAG ACTIVATE\n");
+		return;
+	}
+
 	// no drowning damage for zombies!
 	if ( (mod == MOD_WATER) &&
 		(!Q_stricmp(targ->classname, "q1_monster_zombie") || !Q_stricmp(targ->classname, "monster_q1_zombie")) )
