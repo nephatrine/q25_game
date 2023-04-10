@@ -1013,12 +1013,23 @@ void T_Damage (edict_t *in_targ, edict_t *inflictor, edict_t *in_attacker, vec3_
 	// friendly fire avoidance
 	// if enabled you can't hurt teammates (but you can hurt yourself)
 	// knockback still occurs
-	if ((targ != attacker) && ((deathmatch->value && ((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS))) || coop->value))
+	if (targ != attacker)
 	{
-		if (OnSameTeam (targ, attacker))
+		if (deathmatch->value && ((int)(dmflags->value) & (DF_MODELTEAMS | DF_SKINTEAMS)))
+		{
+			if (OnSameTeam (targ, attacker))
+			{
+				// PMM - nukes kill everyone
+				if (((int)(dmflags->value) & DF_NO_FRIENDLY_FIRE) && (mod != MOD_NUKE))
+					damage = 0;
+				else
+					mod |= MOD_FRIENDLY_FIRE;
+			}
+		}
+		else if (coop->value)
 		{
 			// PMM - nukes kill everyone
-			if (((int)(dmflags->value) & DF_NO_FRIENDLY_FIRE) && (mod != MOD_NUKE))
+			if ((((int)(dmflags->value) & DF_NO_FRIENDLY_FIRE) || coop->value) && (mod != MOD_NUKE))
 				damage = 0;
 			else
 				mod |= MOD_FRIENDLY_FIRE;
