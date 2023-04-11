@@ -1029,7 +1029,7 @@ void T_Damage (edict_t *in_targ, edict_t *inflictor, edict_t *in_attacker, vec3_
 		else if (coop->value)
 		{
 			// PMM - nukes kill everyone
-			if ((((int)(dmflags->value) & DF_NO_FRIENDLY_FIRE) || coop->value) && (mod != MOD_NUKE))
+			if (mod != MOD_NUKE)
 				damage = 0;
 			else
 				mod |= MOD_FRIENDLY_FIRE;
