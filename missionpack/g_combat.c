@@ -1028,11 +1028,14 @@ void T_Damage (edict_t *in_targ, edict_t *inflictor, edict_t *in_attacker, vec3_
 		}
 		else if (coop->value)
 		{
-			// PMM - nukes kill everyone
-			if (mod != MOD_NUKE)
-				damage = 0;
-			else
-				mod |= MOD_FRIENDLY_FIRE;
+			if (OnSameTeam (targ, attacker))
+			{
+				// PMM - nukes kill everyone
+				if (mod != MOD_NUKE)
+					damage = 0;
+				else
+					mod |= MOD_FRIENDLY_FIRE;
+			}
 		}
 	}
 	meansOfDeath = mod;
