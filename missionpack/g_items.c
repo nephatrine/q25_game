@@ -1128,17 +1128,8 @@ qboolean Pickup_Key (edict_t *ent, edict_t *other)
 		"key_data_spinner",
 		"key_airstrike_target"
 	};
+	static qboolean stageObtained[] = {false, false, false, false, false};
 	int i;
-	for (i = 0; i < sizeof(stageItems)/sizeof(stageItems[0]); i++)
-	{
-		if (0 == strcmp(ent->classname, stageItems[i]))
-		{
-			//NOTE(Fix): If we use cvar_set, that tries to change it as if the user
-			//     	     entered it via console. We have to make sure this increments.
-			gi.cvar_forceset("skill_stage", va("%d", (int)skill_stage->value + 1));
-			break;
-		}
-	}
 
 	if (coop->value)
 	{
@@ -1155,9 +1146,24 @@ qboolean Pickup_Key (edict_t *ent, edict_t *other)
 				return false;
 			other->client->pers.inventory[ITEM_INDEX(ent->item)] = 1;
 		}
-		return true;
 	}
-	other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
+	else
+		other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
+
+	// do not increment for items we already have in coop
+	for (i = 0; i < sizeof(stageItems)/sizeof(stageItems[0]); i++)
+	{
+		if (stageObtained[i] == true) break;
+		if (0 == strcmp(ent->classname, stageItems[i]))
+		{
+			//NOTE(Fix): If we use cvar_set, that tries to change it as if the user
+			//     	     entered it via console. We have to make sure this increments.
+			gi.cvar_forceset("skill_stage", va("%d", (int)skill_stage->value + 1));
+			stageObtained[i] = true;
+			break;
+		}
+	}
+
 	return true;
 }
 
