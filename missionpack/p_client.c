@@ -1351,9 +1351,15 @@ void player_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damag
 #ifdef NEPHATRINE_TWEAKS
 			if (coop->value)
 			{
+				// keep half current ammo or one box of ammo
 				if (itemlist[n].flags & IT_AMMO)
-					self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n] / 2;
-				else
+				{
+					if(self->client->pers.inventory[n] > 0 && self->client->pers.inventory[n] < itemlist[n].quantity * 2)
+						self->client->resp.coop_respawn.inventory[n] = itemlist[n].quantity;
+					else
+						self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n] / 2;
+				}
+				else if (itemlist[n].flags & (IT_KEY | IT_WEAPON | IT_POWERUP))
 					self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n];
 			}
 			self->client->pers.inventory[n] = 0;
